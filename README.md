@@ -1,55 +1,171 @@
-==== BRUCE ====
+# <img src="https://brucedom.com/images/logo.png" alt="bruce logo" width="32"/> Bruce
 
-Basic runtime for uniform compute environments
+Basic Runtime for Uniform Compute Environments
 
-Bruce was initially intended to just operate as a more advanced exec handler for serf.  It has somewhat evolved at this point far beyond that in order to become a more stable OS configuration and installation utility.  More stable and capable as it does not require pre-existing libraries on the base OS like ansible, or agents that must be configured and associated with a chef server etc.  One of the key characteristics is the ability to load templates directly through multiple loaders.  This enables not only the ability to quickly setup a fleet by hostname as example but also to effectively bootstrap an instance on EC2 in a secure way by limiting that particular instance profile to an s3 prefix from which bruce will load the installer config.
+---
+Bruce is a lightweight, single-binary tool designed to configure and install operating system packages and settings in a reproducible and uniform way. It operates without the heavy dependencies required by tools like Ansible or Chef, making it ideal for quickly setting up fleets of servers or bootstrapping instances in environments like AWS EC2.
 
-## TLDR How do I run bruce.
+[![Latest Release](https://img.shields.io/github/release/brucedom/bruce.svg)](https://github.com/brucedom/bruce/releases/latest)
+[![License](https://img.shields.io/github/license/brucedom/bruce.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/brucedom/bruce)](https://goreportcard.com/report/github.com/brucedom/bruce)
+![Linux](https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-772953?logo=linux&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-amd64%20%7C%20arm64-0c77e3?logo=apple&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-amd64%20%7C%20arm64-0078D6?logo=windows&logoColor=white)
 
-### A one liner to download latest bruce:
+The repository is also supported and backed by Runtime Dynamics LLC. Which is primarily focused on enterprise level support and services for Bruce.  The Bruce project is a community driven project that is supported by the community and the enterprise level support is provided by Runtime Dynamics LLC.
+
+## Table of Contents
+- [Features](#features)
+- [Getting Started](#getting-started)
+    - [Documentation](#documentation)
+    - [Installation](#installation)
+- [Quick Start](#quick-start)
+    - [Prepare a Configuration File](#prepare-a-configuration-file)
+    - [Run Bruce](#run-bruce)
+    - [Load Configuration from Different Sources](#load-configuration-from-different-sources)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Operators](#operators)
+- [Contributing](#contributing)
+- [Contact](#contact)
+- [Principles and Context](#principles-and-context)
+- [Credits](#credits)c
+
+## Features
+* **Zero Dependencies**: No additional OS dependencies; works even on minimal installations.
+* **Single Binary**: Easy distribution and deployment as a standalone binary.
+* **Multi-Platform Support**: Compatible with Linux, macOS, and basic Windows support.
+* **Fast Execution**: Configures entire systems rapidly, outperforming similar tools on resource-constrained instances.
+* **Flexible Configuration**: Supports native commands with OS limiters, services management, package installations, file ownership settings, and more.
+* **Template Engine**: Inject variables and environment variables into templates, enabling dynamic configurations.
+* **Secure Loaders**: Load configuration files from multiple sources like local files, S3 buckets, or HTTP URLs.
+* **Conditional Execution**: Execute or exclude commands based on conditions.
+* **Service Management**: Restart services only on change detection to minimize downtime.
+
+## Getting Started
+
+### Documentation
+For the full documentation on Bruce, visit the [Bruce Documentation](https://docs.brucedom.com/).
+
+### Installation
+
+Download the [latest release](https://github.com/brucedom/bruce/releases) for your operating system from the [Releases Page](https://github.com/brucedom/bruce/releases).
+
+#### One-liner Installation for Linux AMD64
+Note: This command downloads the latest release for Linux AMD64, and uses sudo to extract the tarball to /usr/local/bin. Ensure you have the necessary permissions, you can skip the last part and manually move the binary to your desired location.
+```bash
+wget -qO- $(curl -s https://api.github.com/repos/brucedom/bruce/releases/latest | grep "linux_amd64" | grep https | cut -d : -f 2,3 | tr -d \" | awk '{$1=$1};1') | sudo tar -xz -C /usr/local/bin
 ```
-wget -qO- $(curl -s https://api.github.com/repos/brucedom/bruce/releases/latest | grep "linux_amd64"|grep https | cut -d : -f 2,3 | tr -d \" | awk '{$1=$1};1') |tar -xvz
+
+## Quick Start
+### Prepare a Configuration File
+
+Create an `install.yml` file. You can use the example configuration as a starting point. Here's a basic example:
+
+```yaml
+---
+variables:
+  Person: "Steven"
+steps:
+- cmd: echo "${Person} is using Bruce"
+  setEnv: Person
+- template: ./output2.txt
+  source: https://raw.githubusercontent.com/brucedom/bruce/refs/heads/main/template-example.txt
+- api: https://postman-echo.com/get?foo1=bar1&foo2=bar2
+  jsonKey: headers.host
+  setEnv: apiResponse
+- cmd: echo ${apiResponse}
+```
+This is an extremely rudimentary example, that uses a "global variable Person" to echo a message, then uses a template to create a file, then uses an API call to get a response and echo it.
+
+### Run Bruce
+
+```bash
+./bruce ./install.yml
+```
+The output on running that would look like this:
+```shell
+11:30AM INF cmd: echo "Steven is using Bruce"
+11:30AM INF template: https://raw.githubusercontent.com/brucedom/bruce/refs/heads/main/template-example.txt => ./output2.txt
+11:30AM INF template written: ./output2.txt
+11:30AM INF no backup file for ./output2.txt
+11:30AM INF API request: GET https://postman-echo.com/get?foo1=bar1&foo2=bar2
+11:30AM INF cmd: echo postman-echo.com
+```
+And the output of the output2.txt file would be:
+```shell
+There be a person named: Steven is using Bruce here.
+(string) (len=21) "Steven is using Bruce"
+```
+### Load Configuration from Different Sources
+Alternatively, load the configuration from an S3 bucket or an HTTP URL:
+
+#### From S3
+
+```bash
+./bruce s3://your-bucket/install.yml
+```
+Note: This requires that you have set up your AWS credentials appropriately first.
+
+#### From HTTP
+
+```bash
+./bruce https://your.domain/$(hostname -f).yml
 ```
 
-Once you've downloaded your respective OS package from: https://github.com/brucedom/bruce/releases/latest
+## Usage
+Bruce operates based on a configuration file that defines the desired state of your system. It supports various operators to perform tasks like running command line, managing services, and templating files.
 
-Extract it and run bruce with a config file, for an example config file see: https://github.com/brucedom/bruce/blob/main/config.example.yml
+## Configuration
+The configuration file is written in YAML format. Below is a basic example:
 
+```yaml
+---
+variables:
+# note do not set Option here as it will be overwritten
+steps:
+  - cmd: echo "Secondary test command received"
 ```
-./bruce --config=install.yml
-```
+The yaml file is divided into 2 primary sections, first and foremost we start with the variables section which is optional, but allows you to set variables that can be used in the steps section.  The steps section is where the magic happens, it is a list of commands that Bruce will execute in order.  Each command is a dictionary with a key of the operator you want to use, and the value is the configuration for that operator.
 
-Or in the event you want to load it from an instance that should load an internal s3 hosted install file:
-```
-./bruce --config s3://somebucket/install.yml
-```
+## Operators
+Bruce supports a variety of operators within the configuration file:
 
-Or if you prefer to have an internal service that hosts all your files:
-```
-./bruce --config https://some.hostname/$(hostname -f).yml
-```
+| Operator            | Description                                                                                                                                                                      |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **API**             | Make HTTP(s) requests and set the response as an environment variable, or dump it to a file to be used later.  Has built in capabilities to parse json for dot notation of keys. |
+| **Command**         | Execute native commands with arguments.  Optional capabilities for running `onlyIF` or `notIf` conditions. Output can also be set as envars for use later in the configuration.  |
+| **Copy**            |  Copy provides a means to copy files from one location to another, sources could include http(s) or s3 or local files on the same box.                                           |
+| **Cron**            | Enables the ability to add or remove cron jobs from the system, specifically for *nix environmetns.|
+| **Git**             | Clone or pull a git repository to a specified location, does not require git to be installed on the system.|
+| **Loop**            | Allows for looping over a list of commands, useful for iterating over a list of items. Example use case would be installing kafka and providing a different ID for each instance.|
+| **RecursiveCopy**   | Copy files from one location to another, recursively.  Sources could include http(s) or s3 or local files on the same box, this uses concurrency to allow for multiple files to be processed at the same time.|
+| **RemoteExecution** | Execute commands on remote hosts via ssh, this allows you to execute a remote command and also set the output as an environment variable.|
+| **Signals**         | Send signals like SIGINT or SIGHUP to running processes.|
+| **Tarball**         | Extract a tarball to a specified location, removing the tarball after extraction, without having to have tar installed on the system.|
+| **Template**       | Render templates with injected variables and environment variables, which allows for stable system configurations across multiple environments.|
 
-Currently bruce supports several operators within the config file that provide the functionality:
-* Native commands with built in os limiters (so you can limit which OS's will run what commands) - see nginx example
-* Services which will enable services and will auto restart services based on templates that trigger restarts during a run (can be used with serf to auto update)
-* Packages which will install OS packages on the host system to configure the system for use
-* Ownership to enable chowning one file or recursive directories of files
-* Signals in order to send SIGINT / SIGHUP to running processes instead of restarting the entire process
-* Templates which support injection of variables via locally run commands as input value and provided template values
-* Several more operators to come.
 
-Principles for building bruce & why not ansible?:
-- NO additional OS dependencies, should be able to use it on scratch if I want...
-- Single binary (aka go binary)
-- Multi platform (aka linux / mac / [basic windows support already])
-- Must do package installs (at least yum & apt for now)
-- Must configure templates (concurrently if possible)
-- Must be way faster than ansible IE: configure entire system before checks pass on an amazon t2.micro for general installs like nginx
+## Contributing
+We welcome contributions from the community to enhance Bruce's functionality, especially in extending Windows support.
 
-===== Extended Functionality =====
-- Template variables are fully injected into the template system and the ability to set envars on the fly exists, benefit here is that those envars only exist during the session run making it beneficial even for configuring connections with passwords.
-- Download and extract tarball to specified directory, stripping of initial directories inside also exists making it simple to handle package releases of applications.
-- Execute or exclude use of commands based on conditions.
-- Basic windows functionality but requires additional sourcing from the community to make it a fully baked solution.
-- Run as a server, enable the ability to trigger runs remotely through a basic GET request reducing the need for login credentials.
-- Restart services only on change detection.
+### To contribute:
+
+* Fork the repository.
+* Create a new branch for your feature or bugfix.
+* Commit your changes with clear messages.
+* Submit a pull request to the main branch.
+
+## Contact
+For any questions or suggestions, feel free to open an issue or contact the maintainer:
+
+Website: [brucedom.com](https://brucedom.com)
+Email: [support@brucedom.com](mailto:support@brucedom.com)
+
+Expand your capabilities by using Bruce with an event driven backend and build advanced automation workflows, on [brucedom.com](https://brucedom.com)
+
+## Principles and Context
+Bruce is built with the principles of simplicity and efficiency, aiming to make system configuration as straightforward as possible. Originally designed for machine learning applications, Bruce facilitates the transition from ML training to hosting in environments lacking dedicated and advanced operations capabilities. It consequently expanded to handle distributed execution across multiple agents via its advanced backend features on https://brucedom.com
+
+## Credits
+https://postman-echo.com/ - For providing a free API endpoint for testing purposes.
