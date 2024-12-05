@@ -1,13 +1,13 @@
-# <img src="https://brucedom.com/images/logo.png" alt="bruce logo" width="32"/> Bruce
+# <img src="https://bruce.tools/images/logo.png" alt="bruce logo" width="32"/> Bruce
 
 Basic Runtime for Uniform Compute Environments
 
 ---
 Bruce is a lightweight, single-binary tool designed to configure and install operating system packages and settings in a reproducible and uniform way. It operates without the heavy dependencies required by tools like Ansible or Chef, making it ideal for quickly setting up fleets of servers or bootstrapping instances in environments like AWS EC2.
 
-[![Latest Release](https://img.shields.io/github/release/brucedom/bruce.svg)](https://github.com/brucedom/bruce/releases/latest)
-[![License](https://img.shields.io/github/license/brucedom/bruce.svg)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/brucedom/bruce)](https://goreportcard.com/report/github.com/brucedom/bruce)
+[![Latest Release](https://img.shields.io/github/release/brucehq/bruce.svg)](https://github.com/brucehq/bruce/releases/latest)
+[![License](https://img.shields.io/github/license/brucehq/bruce.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/brucehq/bruce)](https://goreportcard.com/report/github.com/brucehq/bruce)
 ![Linux](https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-772953?logo=linux&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-amd64%20%7C%20arm64-0c77e3?logo=apple&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-amd64%20%7C%20arm64-0078D6?logo=windows&logoColor=white)
@@ -45,16 +45,16 @@ The repository is also supported and backed by Runtime Dynamics LLC. Which is pr
 ## Getting Started
 
 ### Documentation
-For the full documentation on Bruce, visit the [Bruce Documentation](https://docs.brucedom.com/).
+For the full documentation on Bruce, visit the [Bruce Documentation](https://docs.bruce.tools/).
 
 ### Installation
 
-Download the [latest release](https://github.com/brucedom/bruce/releases) for your operating system from the [Releases Page](https://github.com/brucedom/bruce/releases).
+Download the [latest release](https://github.com/brucehq/bruce/releases) for your operating system from the [Releases Page](https://github.com/brucehq/bruce/releases).
 
 #### One-liner Installation for Linux AMD64
 Note: This command downloads the latest release for Linux AMD64, and uses sudo to extract the tarball to /usr/local/bin. Ensure you have the necessary permissions, you can skip the last part and manually move the binary to your desired location.
 ```bash
-wget -qO- $(curl -s https://api.github.com/repos/brucedom/bruce/releases/latest | grep "linux_amd64" | grep https | cut -d : -f 2,3 | tr -d \" | awk '{$1=$1};1') | sudo tar -xz -C /usr/local/bin
+wget -qO- $(curl -s https://api.github.com/repos/brucehq/bruce/releases/latest | grep "linux_amd64" | grep https | cut -d : -f 2,3 | tr -d \" | awk '{$1=$1};1') | sudo tar -xz -C /usr/local/bin
 ```
 
 ## Quick Start
@@ -70,7 +70,7 @@ steps:
 - cmd: echo "${Person} is using Bruce"
   setEnv: Person
 - template: ./output2.txt
-  source: https://raw.githubusercontent.com/brucedom/bruce/refs/heads/main/template-example.txt
+  source: https://raw.githubusercontent.com/brucehq/bruce/refs/heads/main/template-example.txt
 - api: https://postman-echo.com/get?foo1=bar1&foo2=bar2
   jsonKey: headers.host
   setEnv: apiResponse
@@ -86,7 +86,7 @@ This is an extremely rudimentary example, that uses a "global variable Person" t
 The output on running that would look like this:
 ```shell
 11:30AM INF cmd: echo "Steven is using Bruce"
-11:30AM INF template: https://raw.githubusercontent.com/brucedom/bruce/refs/heads/main/template-example.txt => ./output2.txt
+11:30AM INF template: https://raw.githubusercontent.com/brucehq/bruce/refs/heads/main/template-example.txt => ./output2.txt
 11:30AM INF template written: ./output2.txt
 11:30AM INF no backup file for ./output2.txt
 11:30AM INF API request: GET https://postman-echo.com/get?foo1=bar1&foo2=bar2
@@ -159,13 +159,13 @@ We welcome contributions from the community to enhance Bruce's functionality, es
 ## Contact
 For any questions or suggestions, feel free to open an issue or contact the maintainer:
 
-Website: [brucedom.com](https://brucedom.com)
-Email: [support@brucedom.com](mailto:support@brucedom.com)
+Website: [bruce.tools](https://bruce.tools)
+Email: [support@bruce.tools](mailto:support@bruce.tools)
 
-Expand your capabilities by using Bruce with an event driven backend and build advanced automation workflows, on [brucedom.com](https://brucedom.com)
+Expand your capabilities by using Bruce with an event driven backend and build advanced automation workflows, on [bruce.tools](https://bruce.tools)
 
 ## Principles and Context
-Bruce is built with the principles of simplicity and efficiency, aiming to make system configuration as straightforward as possible. Originally designed for machine learning applications, Bruce facilitates the transition from ML training to hosting in environments lacking dedicated and advanced operations capabilities. It consequently expanded to handle distributed execution across multiple agents via its advanced backend features on https://brucedom.com
+Bruce is built with the principles of simplicity and efficiency, aiming to make system configuration as straightforward as possible. Originally designed for machine learning applications, Bruce facilitates the transition from ML training to hosting in environments lacking dedicated and advanced operations capabilities. It consequently expanded to handle distributed execution across multiple agents via its advanced backend features on https://bruce.tools
 
 ## Credits
 https://postman-echo.com/ - For providing a free API endpoint for testing purposes.

@@ -1,5 +1,5 @@
 ---
-endpoint: wss://local.nitecon.net:8888/workers
+endpoint: wss://bruce.tools/workers
 runner-id: 4e9xavba-8850-418b-9013-cda07820ffc4
 authorization: f9d6258c-b4bb-5zb4-aa5d-14995e5ea2f7
 execution:

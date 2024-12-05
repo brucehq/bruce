@@ -4,7 +4,7 @@ import "fmt"
 
 func Version(currentVersion string) error {
 	fmt.Println("BRUCE version: " + currentVersion)
-	tag, err := getLatestTag("brucedom", "bruce")
+	tag, err := getLatestTag("brucehq", "bruce")
 	if err != nil {
 		return err
 	}
