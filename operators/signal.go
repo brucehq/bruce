@@ -18,6 +18,11 @@ type Signals struct {
 	NotIf   string `yaml:"notIf"`
 }
 
+func (s *Signals) Setup() {
+	s.OnlyIf = RenderEnvString(s.OnlyIf)
+	s.NotIf = RenderEnvString(s.NotIf)
+}
+
 func (s *Signals) Execute() error {
 	if len(s.OnlyIf) > 0 {
 		pc := exe.Run(s.OnlyIf, "")

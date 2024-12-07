@@ -45,6 +45,8 @@ type Template struct {
 func (t *Template) Setup() {
 	t.Template = RenderEnvString(t.Template)
 	t.RemoteLoc = RenderEnvString(t.RemoteLoc)
+	t.OnlyIf = RenderEnvString(t.OnlyIf)
+	t.NotIf = RenderEnvString(t.NotIf)
 }
 
 type TVars struct {

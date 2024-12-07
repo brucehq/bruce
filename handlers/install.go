@@ -49,7 +49,7 @@ func loadPropData(propFile string) error {
 
 	err = yaml.Unmarshal(d, c)
 	if err != nil {
-		log.Fatal().Err(err).Msg("could not parse config file")
+		log.Fatal().Err(err).Msg("could not parse property data file")
 	}
 	for k, v := range c {
 		log.Debug().Msgf("setting env var: %s=%s", k, v)

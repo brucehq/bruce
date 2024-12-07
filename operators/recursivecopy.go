@@ -19,7 +19,10 @@ type RecursiveCopy struct {
 }
 
 func (c *RecursiveCopy) Setup() {
+	c.Src = RenderEnvString(c.Src)
 	c.Dest = RenderEnvString(c.Dest)
+	c.OnlyIf = RenderEnvString(c.OnlyIf)
+	c.NotIf = RenderEnvString(c.NotIf)
 	// Check if parent directory exists and create it if it doesn't
 	if _, err := os.Stat(c.Dest); os.IsNotExist(err) {
 		err = os.MkdirAll(c.Dest, 0755)

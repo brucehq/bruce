@@ -22,6 +22,8 @@ type Cron struct {
 func (c *Cron) Setup() {
 	c.Exec = RenderEnvString(c.Exec)
 	c.User = RenderEnvString(c.User)
+	c.OnlyIf = RenderEnvString(c.OnlyIf)
+	c.NotIf = RenderEnvString(c.NotIf)
 }
 
 func (c *Cron) Execute() error {

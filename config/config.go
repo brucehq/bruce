@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"os"
+	"strings"
 )
 
 // TemplateData will be marshalled from the provided config file that exists.
@@ -115,9 +116,13 @@ func LoadConfig(fileName string) (*TemplateData, error) {
 		log.Debug().Msg("debug mode enabled")
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
+	// String replace all template variable braces {{ with --== and }} with ==-- in d to avoid yaml parsing issues
+	d = []byte(strings.ReplaceAll(strings.ReplaceAll(string(d), "{{", "--=="), "}}", "==--"))
+
 	err = yaml.Unmarshal(d, c)
 	if err != nil {
 		log.Fatal().Err(err).Msg("could not parse config file")
 	}
+
 	return c, nil
 }

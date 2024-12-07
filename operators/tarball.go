@@ -20,6 +20,8 @@ type Tarball struct {
 func (t *Tarball) Setup() {
 	t.Src = RenderEnvString(t.Src)
 	t.Dest = RenderEnvString(t.Dest)
+	t.OnlyIf = RenderEnvString(t.OnlyIf)
+	t.NotIf = RenderEnvString(t.NotIf)
 }
 
 func (t *Tarball) Execute() error {

@@ -3,6 +3,7 @@ package loader
 import (
 	"bruce/exe"
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"io"
@@ -27,6 +28,17 @@ func CopyFile(src, dest string, perm os.FileMode, overwrite bool) error {
 	}
 	// create a io.reader from sd
 	source := bytes.NewReader(sd)
+	// check if the destination does not start with . or /, then it's a remote path
+	if dest[0] != '.' && dest[0] != '/' {
+		// now if it starts with s3 we upload it to s3
+		if dest[0:5] == "s3://" {
+			return uploadToS3(dest, source)
+		}
+		// if it starts with http we upload it to http
+		if dest[0:4] == "http" {
+			return errors.New("http upload not supported")
+		}
+	}
 	if exe.FileExists(dest) {
 		if overwrite {
 			log.Err(exe.DeleteFile(dest))
@@ -65,6 +77,21 @@ func CopyFile(src, dest string, perm os.FileMode, overwrite bool) error {
 	log.Debug().Msgf("copied %d bytes", sln)
 	log.Err(destination.Close())
 	return nil
+}
+
+func uploadToS3(dest string, source *bytes.Reader) error {
+	// dest should be in format s3://bucket/key, validate this format then split the dest into bucket and key
+	// then upload the source to the bucket with the key
+	if dest[0:5] != "s3://" {
+		return errors.New("invalid s3 destination, must use format s3://<bucket>/<key>")
+	}
+	// read the source to bytes:
+	data, err := io.ReadAll(source)
+	if err != nil {
+		log.Error().Err(err).Msg("could not read source data")
+		return err
+	}
+	return WriteToS3(dest, data)
 }
 
 func RecursiveCopy(src string, baseDir, dest string, overwrite bool, ignores []string, isFlatCopy bool, maxDepth, maxConcurrent int) error {

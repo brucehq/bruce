@@ -114,51 +114,6 @@ func (s *SystemInfo) wash(input string) string {
 	return us
 }
 
-// CanExecOnOs will return true if the current OsList string passed in packages etc matches current OS.
-func (s *SystemInfo) CanExecOnOs(OsList string) bool {
-	if OsList == "all" || OsList == "" {
-		log.Debug().Msg("executing on all OS variants")
-		return true
-	}
-	if strings.Contains(OsList, "|") {
-		osList := strings.Split(OsList, "|")
-		for _, OsInfo := range osList {
-			if strings.Contains(OsInfo, ":") {
-				log.Debug().Msg("OsInfo contains : so check version")
-				// doing version match including base os
-				subList := strings.Split(OsInfo, ":")
-				if s.wash(subList[0]) == s.OSID && s.wash(subList[1]) == s.OSVersionID {
-					// return true if: (ubuntu:20.04)
-					return true
-				}
-			} else {
-				// doing base os match only eg: ubuntu / fedora
-				if s.wash(OsInfo) == s.OSID {
-					// return true if (ubuntu)
-					return true
-				}
-			}
-		}
-	} else {
-		if strings.Contains(OsList, ":") {
-			log.Debug().Msg("OsInfo contains : so check version")
-			// doing version match including base os
-			subList := strings.Split(OsList, ":")
-			if s.wash(subList[0]) == s.OSID && s.wash(subList[1]) == s.OSVersionID {
-				// return true if: (ubuntu:20.04)
-				return true
-			}
-		} else {
-			// doing base os match only eg: ubuntu / fedora
-			if s.wash(OsList) == s.OSID {
-				// return true if (ubuntu)
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func GetLinuxServiceController() (string, error) {
 	// We only support systemctl for now
 	sysPath := exe.HasExecInPath("systemctl")

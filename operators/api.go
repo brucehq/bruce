@@ -78,6 +78,8 @@ func (api *API) findNestedValue(data map[string]interface{}, keyParts []string) 
 func (api *API) Setup() {
 	api.Endpoint = RenderEnvString(api.Endpoint)
 	api.OutputFile = RenderEnvString(api.OutputFile)
+	api.OnlyIf = RenderEnvString(api.OnlyIf)
+	api.NotIf = RenderEnvString(api.NotIf)
 	if len(api.Body) == 0 {
 		return
 	}

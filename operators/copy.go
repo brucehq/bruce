@@ -18,6 +18,8 @@ type Copy struct {
 func (c *Copy) Setup() {
 	c.Src = RenderEnvString(c.Src)
 	c.Dest = RenderEnvString(c.Dest)
+	c.OnlyIf = RenderEnvString(c.OnlyIf)
+	c.NotIf = RenderEnvString(c.NotIf)
 }
 
 func (c *Copy) Execute() error {

@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -29,7 +30,7 @@ type S3Manager struct {
 
 func ReadFromS3(fileName string) ([]byte, string, error) {
 	fn := path.Base(fileName)
-	if s == nil {
+	if s == nil || s.Service == nil {
 		region := os.Getenv("AWS_REGION")
 		if region == "" {
 			region = os.Getenv("AWS_DEFAULT_REGION")
@@ -41,6 +42,10 @@ func ReadFromS3(fileName string) ([]byte, string, error) {
 			return nil, fn, err
 		}
 		s.Service = s3.New(sess)
+	}
+	// now check if s3 is valid
+	if s.Service == nil || s.Session == nil {
+		return nil, "", fmt.Errorf("cannot read from s3, service is not initialized, did you set your AWS credentials")
 	}
 	ctx := context.Background()
 	var cancelFn func()
@@ -69,6 +74,41 @@ func ReadFromS3(fileName string) ([]byte, string, error) {
 	}
 	log.Error().Err(fd.Body.Close())
 	return d, fn, nil
+}
+
+func WriteToS3(fileName string, data []byte) error {
+	if s == nil || s.Service == nil {
+		region := os.Getenv("AWS_REGION")
+		if region == "" {
+			region = os.Getenv("AWS_DEFAULT_REGION")
+		}
+		// if the region is still empty then set it to us-east-1
+		if region == "" {
+			region = "us-east-1"
+		}
+
+		sess, err := session.NewSessionWithOptions(session.Options{Config: aws.Config{Region: aws.String(region), Endpoint: aws.String(fmt.Sprintf("s3.%s.amazonaws.com", region))}})
+		if err != nil {
+			log.Debug().Msg("Could not initialize AWS session")
+			return err
+		}
+		s.Service = s3.New(sess)
+	}
+	ctx := context.Background()
+
+	// Ensure the context is canceled to prevent leaking.
+	// See context package for more information, https://golang.org/pkg/context/
+	pfxCut := fileName[5:]
+	subIdx := strings.Index(pfxCut, "/")
+	bucket := pfxCut[:subIdx]
+	objKey := pfxCut[subIdx:]
+	_, err := s.Service.PutObjectWithContext(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(objKey),
+		Body:   bytes.NewReader(data),
+	})
+
+	return err
 }
 
 func downloadS3File(svc *s3.S3, bucket, key, aDest string, overwrite bool, wg *sync.WaitGroup, semaphore chan struct{}) {
