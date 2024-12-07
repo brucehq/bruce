@@ -67,14 +67,14 @@ Create an `install.yml` file. You can use the example configuration as a startin
 variables:
   Person: "Steven"
 steps:
-- cmd: echo "${Person} is using Bruce"
+- cmd: echo "{{.Person}} is using Bruce"
   setEnv: Person
 - template: ./output2.txt
   source: https://raw.githubusercontent.com/brucehq/bruce/refs/heads/main/template-example.txt
 - api: https://postman-echo.com/get?foo1=bar1&foo2=bar2
   jsonKey: headers.host
   setEnv: apiResponse
-- cmd: echo ${apiResponse}
+- cmd: echo {{.apiResponse}}
 ```
 This is an extremely rudimentary example, that uses a "global variable Person" to echo a message, then uses a template to create a file, then uses an API call to get a response and echo it.
 
