@@ -2,12 +2,12 @@ package operators
 
 import (
 	"bruce/system"
+	"bytes"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
+	"text/template"
 )
 
 type Operator interface {
@@ -55,7 +55,10 @@ func GetValueForOSHandler(value string) string {
 	return value
 }
 
-func RenderEnvString(s string) string {
+func RenderEnvString(o string) string {
+	// now we iterate over the steps and replace the --== and ==-- with {{ and }} respectively and store it in s
+	s := strings.ReplaceAll(o, "--==", "{{")
+	s = strings.ReplaceAll(s, "==--", "}}")
 	log.Debug().Msgf("rendering env string: %s", s)
 	envVars := make(map[string]string)
 	for _, e := range os.Environ() {
@@ -63,22 +66,25 @@ func RenderEnvString(s string) string {
 		envVars[pair[0]] = pair[1]
 	}
 
-	var envVarRegex *regexp.Regexp
-	if system.Get().OSType == "windows" {
-		envVarRegex = regexp.MustCompile(`%([^%]+)%`)
-	} else {
-		envVarRegex = regexp.MustCompile(`(?:\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}|~)`)
+	s, err := StringFromTemplate(s, envVars)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to render env string")
+	}
+	return s
+}
+
+// StringFromTemplate applies a map of fields to a template string and returns the resulting string.
+func StringFromTemplate(InTemplate string, fields map[string]string) (string, error) {
+	tmpl, err := template.New("stringTemplate").Parse(InTemplate)
+	if err != nil {
+		return "", err
 	}
 
-	return envVarRegex.ReplaceAllStringFunc(s, func(match string) string {
-		if strings.HasPrefix(match, "~") {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				return match
-			}
-			return filepath.Join(homeDir, match[1:])
-		}
-		varName := envVarRegex.ReplaceAllString(match, "$1")
-		return envVars[varName]
-	})
+	var result bytes.Buffer
+	err = tmpl.Execute(&result, fields)
+	if err != nil {
+		return "", err
+	}
+
+	return result.String(), nil
 }
