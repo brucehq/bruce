@@ -34,6 +34,7 @@ func init() {
 type Template struct {
 	Template  string      `yaml:"template"`
 	RemoteLoc string      `yaml:"source"`
+	RemoteKey string      `yaml:"key"`
 	Perms     os.FileMode `yaml:"perms"`
 	Owner     string      `yaml:"owner"`
 	Group     string      `yaml:"group"`
@@ -91,7 +92,7 @@ func (t *Template) Execute() error {
 		log.Debug().Str("template", t.Template).Msg("no existing template file exists")
 	}
 	log.Info().Msgf("template: %s => %s", t.RemoteLoc, t.Template)
-	return ExecuteTemplate(t.Template, t.RemoteLoc, t.Variables, t.Perms)
+	return ExecuteTemplate(t.Template, t.RemoteLoc, t.RemoteKey, t.Variables, t.Perms)
 	// run template exec on file
 }
 
@@ -100,7 +101,7 @@ func GetBackupFileChecksum(src string) (string, error) {
 	return exe.GetFileChecksum(backupFileName)
 }
 
-func ExecuteTemplate(local, remote string, vars []TVars, perms fs.FileMode) error {
+func ExecuteTemplate(local, remote, remote_key string, vars []TVars, perms fs.FileMode) error {
 	// we have the backup so now we can delete the file if it exists
 	if exe.FileExists(local) {
 		exe.DeleteFile(local)
@@ -112,7 +113,7 @@ func ExecuteTemplate(local, remote string, vars []TVars, perms fs.FileMode) erro
 	}
 
 	log.Debug().Msgf("template exec starting on: %s", local)
-	t, err := loadTemplateFromRemote(remote)
+	t, err := loadTemplateFromRemote(remote, remote_key)
 	if err != nil {
 		log.Err(err).Msgf("cannot read template source %s", local)
 		return err
@@ -193,8 +194,8 @@ func loadTemplateValue(v TVars) string {
 	return ""
 }
 
-func loadTemplateFromRemote(remoteLoc string) (*template.Template, error) {
-	d, _, err := loader.ReadRemoteFile(remoteLoc)
+func loadTemplateFromRemote(remoteLoc, key string) (*template.Template, error) {
+	d, _, err := loader.ReadRemoteFile(remoteLoc, key)
 	if err != nil {
 		log.Error().Err(err).Msgf("could not read remote template file: %s", remoteLoc)
 	}

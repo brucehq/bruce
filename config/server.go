@@ -11,6 +11,7 @@ type Execution struct {
 	Type    string `yaml:"type"`
 	Cadence int    `yaml:"cadence"`
 	Target  string `yaml:"target"`
+	PrivKey string `yaml:"privkey"`
 }
 
 type ServerConfig struct {

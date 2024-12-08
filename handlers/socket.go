@@ -95,7 +95,7 @@ func DataHandler(ctx context.Context, conn *websocket.Conn, eventExecutions []co
 					continue
 				}
 				// Execute the steps for the corresponding action
-				t, err := config.LoadConfig(actionEvent.Target)
+				t, err := config.LoadConfig(actionEvent.Target, actionEvent.PrivKey)
 				if err != nil {
 					log.Error().Err(err).Msgf("Cannot continue without configuration data, bad event config for: %s", actionEvent.Target)
 					sendMessage("execute-failure", fmt.Sprintf("Cannot continue without configuration data, bad event action for: %s", actionEvent.Target), msg.Action, msg.ActionId)

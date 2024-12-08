@@ -103,8 +103,8 @@ func (e *Steps) UnmarshalYAML(nd *yaml.Node) error {
 }
 
 // LoadConfig attempts to load the user provided manifest.
-func LoadConfig(fileName string) (*TemplateData, error) {
-	d, _, err := loader.ReadRemoteFile(fileName)
+func LoadConfig(fileName, key string) (*TemplateData, error) {
+	d, _, err := loader.ReadRemoteFile(fileName, key)
 	if err != nil {
 		log.Error().Err(err).Msg("cannot proceed without a config file and specified config cannot be read.")
 		os.Exit(1)

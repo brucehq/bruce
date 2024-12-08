@@ -129,7 +129,7 @@ func downloadFile(src, dest string, overwrite bool, wg *sync.WaitGroup, semaphor
 	defer wg.Done()
 
 	semaphore <- struct{}{}
-	err := CopyFile(src, dest, 0664, overwrite)
+	err := CopyFile(src, dest, "", 0664, overwrite)
 	if err != nil {
 		log.Error().Err(err).Msg("could not copy file")
 	}

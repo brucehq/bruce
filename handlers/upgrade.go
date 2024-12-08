@@ -46,7 +46,7 @@ func Upgrade(currentVersion string) error {
 	if err != nil {
 		log.Fatalf("Error downloading tarball: %s", err)
 	}
-	rd, _, err := loader.GetRemoteData(path.Join(updateDir, fName))
+	rd, _, err := loader.GetRemoteData(path.Join(updateDir, fName), "")
 	if err != nil {
 		log.Fatalf("Error getting reader: %s", err)
 	}

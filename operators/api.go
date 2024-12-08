@@ -85,7 +85,7 @@ func (api *API) Setup() {
 	}
 	// if api.body starts with file:// or https:// or http:// or s3:// then we use load template from remote, else read body as a const string to template
 	if strings.HasPrefix(api.Body, "file://") || strings.HasPrefix(api.Body, "https://") || strings.HasPrefix(api.Body, "http://") || strings.HasPrefix(api.Body, "s3://") {
-		t, err := loadTemplateFromRemote(api.Body)
+		t, err := loadTemplateFromRemote(api.Body, "")
 		if err != nil {
 			log.Error().Err(err).Msg("failed to load template from remote")
 		} else {

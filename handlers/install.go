@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func Install(t *config.TemplateData, propfile string) error {
+func Install(t *config.TemplateData, propfile, key string) error {
 	log.Debug().Msg("starting install task")
 	if len(t.Variables) > 0 {
 		for k, v := range t.Variables {
@@ -17,7 +17,7 @@ func Install(t *config.TemplateData, propfile string) error {
 		}
 	}
 	log.Debug().Msgf("propfile: %s", propfile)
-	err := loadPropData(propfile)
+	err := loadPropData(propfile, key)
 	if err != nil {
 		log.Error().Err(err).Msg("cannot proceed without the properties file specified.")
 		os.Exit(1)
@@ -35,12 +35,12 @@ func Install(t *config.TemplateData, propfile string) error {
 }
 
 // loadPropData loads the property data from property file and does os.SetEnv env for each property value.
-func loadPropData(propFile string) error {
+func loadPropData(propFile, key string) error {
 	if len(propFile) < 1 {
 		return nil
 	}
 	// read content of property file and unmarshal into map
-	d, _, err := loader.ReadRemoteFile(propFile)
+	d, _, err := loader.ReadRemoteFile(propFile, key)
 	if err != nil {
 		return err
 	}

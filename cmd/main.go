@@ -43,6 +43,12 @@ func main() {
 				Value:   "",
 				Usage:   "Loads properties from a file, eg: /etc/bruce/properties.yml to be used as environment variables for operators and templates",
 			},
+			&cli.StringFlag{
+				Name:    "private-key",
+				Aliases: []string{"k"},
+				Value:   os.ExpandEnv("$HOME/.ssh/id_rsa"),
+				Usage:   "The private key to use for SSH connections, this is optional and will default to $HOME/.ssh/id_rsa",
+			},
 			&cli.BoolFlag{
 				Name:    "debug",
 				Aliases: []string{"d"},
@@ -55,20 +61,20 @@ func main() {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 			if cCtx.Args().First() != "" {
-				t, err := config.LoadConfig(cCtx.Args().First())
+				t, err := config.LoadConfig(cCtx.Args().First(), cCtx.String("private-key"))
 				if err != nil {
 					log.Error().Err(err).Msg("cannot continue without configuration data")
 					os.Exit(1)
 				}
-				handlers.Install(t, cCtx.String("property-file"))
+				handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
 				return nil
 			}
-			t, err := config.LoadConfig(cCtx.String("config"))
+			t, err := config.LoadConfig(cCtx.String("config"), cCtx.String("private-key"))
 			if err != nil {
 				log.Error().Err(err).Msg("cannot continue without configuration data")
 				os.Exit(1)
 			}
-			handlers.Install(t, cCtx.String("property-file"))
+			handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
 			return nil
 		},
 		Commands: []*cli.Command{
@@ -80,12 +86,12 @@ func main() {
 					if cCtx.Bool("debug") {
 						zerolog.SetGlobalLevel(zerolog.DebugLevel)
 					}
-					t, err := config.LoadConfig(cCtx.String("config"))
+					t, err := config.LoadConfig(cCtx.String("config"), cCtx.String("private-key"))
 					if err != nil {
 						log.Error().Err(err).Msg("cannot continue without configuration data")
 						os.Exit(1)
 					}
-					handlers.Install(t, cCtx.String("property-file"))
+					handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
 					return nil
 				},
 			},

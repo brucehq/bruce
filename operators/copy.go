@@ -10,6 +10,7 @@ import (
 type Copy struct {
 	Src    string      `yaml:"copy"`
 	Dest   string      `yaml:"dest"`
+	Key    string      `yaml:"key"`
 	Perm   fs.FileMode `yaml:"perm"`
 	OnlyIf string      `yaml:"onlyIf"`
 	NotIf  string      `yaml:"notIf"`
@@ -39,7 +40,7 @@ func (c *Copy) Execute() error {
 			return nil
 		}
 	}
-	err := loader.CopyFile(c.Src, c.Dest, c.Perm, true)
+	err := loader.CopyFile(c.Src, c.Dest, c.Key, c.Perm, true)
 	log.Info().Msgf("copy: %s => %s", c.Src, c.Dest)
 	if err != nil {
 		log.Error().Err(err).Msg("could not copy file")

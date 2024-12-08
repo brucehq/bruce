@@ -16,12 +16,12 @@ type PageLink struct {
 	Text   string
 }
 
-func CopyFile(src, dest string, perm os.FileMode, overwrite bool) error {
+func CopyFile(src, dest, key string, perm os.FileMode, overwrite bool) error {
 	// if filemode is 0, set it to 0644
 	if perm == 0 {
 		perm = 0644
 	}
-	sd, _, err := GetRemoteData(src)
+	sd, _, err := GetRemoteData(src, key)
 	if err != nil {
 		log.Error().Err(err).Msg("cannot open source file")
 		return err
@@ -33,6 +33,9 @@ func CopyFile(src, dest string, perm os.FileMode, overwrite bool) error {
 		// now if it starts with s3 we upload it to s3
 		if dest[0:5] == "s3://" {
 			return uploadToS3(dest, source)
+		}
+		if dest[0:6] == "scp://" {
+			return uploadToSCP(dest, key, source)
 		}
 		// if it starts with http we upload it to http
 		if dest[0:4] == "http" {
@@ -92,6 +95,20 @@ func uploadToS3(dest string, source *bytes.Reader) error {
 		return err
 	}
 	return WriteToS3(dest, data)
+}
+
+func uploadToSCP(dest, key string, source *bytes.Reader) error {
+	// read the source to bytes:
+	data, err := io.ReadAll(source)
+	if err != nil {
+		log.Error().Err(err).Msg("could not read source data")
+		return err
+	}
+	if key == "" {
+		os.ExpandEnv("$HOME/.ssh/id_rsa")
+	}
+	return WriteToSCP(dest, data, key)
+
 }
 
 func RecursiveCopy(src string, baseDir, dest string, overwrite bool, ignores []string, isFlatCopy bool, maxDepth, maxConcurrent int) error {

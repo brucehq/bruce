@@ -58,7 +58,7 @@ func RunServer(svr_config string) error {
 			wg.Add(1)
 			go func(e config.Execution) {
 				defer wg.Done()
-				CadenceRunner(ctx, e.Name, e.Target, e.Cadence)
+				CadenceRunner(ctx, e.Name, e.Target, e.PrivKey, e.Cadence)
 			}(e)
 		} else if e.Type == "event" {
 			// Add "event" type executions to the list for the SocketRunner
@@ -93,9 +93,9 @@ func RunServer(svr_config string) error {
 	return nil
 }
 
-func CadenceRunner(ctx context.Context, name, propfile string, cadence int) {
+func CadenceRunner(ctx context.Context, name, propfile, key string, cadence int) {
 	log.Debug().Msgf("Starting CadenceRunner[%s] with propfile: %s, every %d minutes", name, propfile, cadence)
-	t, err := config.LoadConfig(propfile)
+	t, err := config.LoadConfig(propfile, key)
 	if err != nil {
 		log.Error().Err(err).Msgf("cannot continue without configuration data, runner %s failed", name)
 		return

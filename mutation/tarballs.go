@@ -46,7 +46,7 @@ func ExtractTarball(src, dst string, force, stripRoot bool) error {
 		log.Error().Err(err).Msgf("cannot create directory at dst: %s", dst)
 		return err
 	}
-	rsrc, _, err := loader.GetRemoteData(src)
+	rsrc, _, err := loader.GetRemoteData(src, "")
 	if err != nil {
 		log.Error().Err(err).Msgf("cannot read tarball at src: %s", src)
 		return err
