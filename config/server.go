@@ -1,8 +1,8 @@
 package config
 
 import (
+	"bruce/loader"
 	"gopkg.in/yaml.v3"
-	"os"
 )
 
 type Execution struct {
@@ -22,7 +22,7 @@ type ServerConfig struct {
 }
 
 func ReadServerConfig(l string, sc *ServerConfig) error {
-	data, err := os.ReadFile(l)
+	data, _, err := loader.ReadRemoteFile(l, "")
 	if err != nil {
 		return err
 	}
