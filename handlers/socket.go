@@ -5,10 +5,12 @@ import (
 	"bruce/handlers/queue"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/coder/websocket"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -84,30 +86,33 @@ func DataHandler(ctx context.Context, conn *websocket.Conn, eventExecutions []co
 					continue
 				}
 				queue.Add(d)
+			case "error":
+				log.Error().Err(errors.New(msg.Message)).Msg("will quit now...")
+				os.Exit(1)
 			case "execute":
 				log.Debug().Msgf("Execute request received: %s", msg.Action)
 				// Match the action with the execution in config
 				log.Debug().Msgf("Action: %s, Execution: %#v", msg.Action, eventExecutions)
-				actionEvent, err := RetrieveEvents(msg.Action, eventExecutions)
-				if err != nil {
-					log.Error().Err(err).Msgf("no such action: %s", msg.Action)
+				actionEvent, exerr := RetrieveEvents(msg.Action, eventExecutions)
+				if exerr != nil {
+					log.Error().Err(exerr).Msgf("no such action: %s", msg.Action)
 					sendMessage("execute-failure", fmt.Sprintf("no such action: %s", msg.Action), msg.Action, msg.ActionId)
 					continue
 				}
 				// Execute the steps for the corresponding action
-				t, err := config.LoadConfig(actionEvent.Target, actionEvent.PrivKey)
-				if err != nil {
+				t, exerr := config.LoadConfig(actionEvent.Target, actionEvent.PrivKey)
+				if exerr != nil {
 					log.Error().Err(err).Msgf("Cannot continue without configuration data, bad event config for: %s", actionEvent.Target)
 					sendMessage("execute-failure", fmt.Sprintf("Cannot continue without configuration data, bad event action for: %s", actionEvent.Target), msg.Action, msg.ActionId)
 					continue
 				}
-				err = ExecuteSteps(t)
-				if err != nil {
-					log.Error().Err(err).Msg("ExecuteSteps error")
-					sendMessage("execute-failure", fmt.Sprintf("ExecuteSteps error: %s", err.Error()), msg.Action, msg.ActionId)
+				exerr = ExecuteSteps(t)
+				if exerr != nil {
+					log.Error().Err(exerr).Msg("ExecuteSteps error")
+					sendMessage("execute-failure", fmt.Sprintf("ExecuteSteps error: %s", exerr.Error()), msg.Action, msg.ActionId)
+					continue
 				}
 				sendMessage("execute-success", "Execution completed", msg.Action, msg.ActionId)
-
 			default:
 				log.Warn().Msgf("DataHandler: Unknown message type: %s", msg.MsgType)
 			}
@@ -124,7 +129,7 @@ func sendMessage(sub, body, action, actionId string) {
 	queue.Add(d) // Queue the message to send it
 }
 
-// SocketRunner: Handles the connection and initializes DataHandler
+// SocketRunner Handles the connection and initializes DataHandler
 func SocketRunner(ctx context.Context, sockloc, skey, authkey string, eventExecutions []config.Execution) {
 	// Initialize connection to WebSocket
 	for {

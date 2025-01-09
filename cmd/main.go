@@ -23,9 +23,9 @@ func setLogger() {
 
 func main() {
 	setLogger()
-	err := system.InitializeSysInfo()
-	if err != nil {
-		log.Error().Err(err).Msg("cannot start with unknown system info")
+	ierr := system.InitializeSysInfo()
+	if ierr != nil {
+		log.Error().Err(ierr).Msg("cannot start with unknown system info")
 		os.Exit(1)
 	}
 	app := &cli.App{
@@ -66,21 +66,19 @@ func main() {
 					log.Error().Err(err).Msg("cannot continue without configuration data")
 					os.Exit(1)
 				}
-				handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
-				return nil
+				return handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
 			}
 			t, err := config.LoadConfig(cCtx.String("config"), cCtx.String("private-key"))
 			if err != nil {
 				log.Error().Err(err).Msg("cannot continue without configuration data")
 				os.Exit(1)
 			}
-			handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
-			return nil
+			return handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
 		},
 		Commands: []*cli.Command{
 			{
 				Name:    "install",
-				Aliases: []string{"setup"},
+				Aliases: []string{"setup", "run"},
 				Usage:   "this is the default action and will be run if no commands are specified",
 				Action: func(cCtx *cli.Context) error {
 					if cCtx.Bool("debug") {
@@ -91,8 +89,7 @@ func main() {
 						log.Error().Err(err).Msg("cannot continue without configuration data")
 						os.Exit(1)
 					}
-					handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
-					return nil
+					return handlers.Install(t, cCtx.String("property-file"), cCtx.String("private-key"))
 				},
 			},
 			{
@@ -103,21 +100,7 @@ func main() {
 					if cCtx.Bool("debug") {
 						zerolog.SetGlobalLevel(zerolog.DebugLevel)
 					}
-
-					handlers.RunServer(cCtx.Args().First())
-					return nil
-				},
-			},
-			{
-				Name:    "view",
-				Aliases: []string{"open"},
-				Usage:   "this command opens the manifest for you to view in CLI prior to executing install",
-				Action: func(cCtx *cli.Context) error {
-					if cCtx.Bool("debug") {
-						zerolog.SetGlobalLevel(zerolog.DebugLevel)
-					}
-					handlers.View(cCtx.Args().First())
-					return nil
+					return handlers.RunServer(cCtx.Args().First())
 				},
 			},
 			{
@@ -127,8 +110,7 @@ func main() {
 					if cCtx.Bool("debug") {
 						zerolog.SetGlobalLevel(zerolog.DebugLevel)
 					}
-					handlers.Upgrade(version)
-					return nil
+					return handlers.Upgrade(version)
 				},
 			},
 			{
@@ -138,16 +120,14 @@ func main() {
 					if cCtx.Bool("debug") {
 						zerolog.SetGlobalLevel(zerolog.DebugLevel)
 					}
-					handlers.Version(version)
-					return nil
+					return handlers.Version(version)
 				},
 			},
 		},
 	}
 	log.Debug().Msgf("Starting Bruce (Version: %s)", version)
-	err = app.Run(os.Args)
+	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Error().Err(err)
 	}
-
 }
