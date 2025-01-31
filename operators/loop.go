@@ -13,11 +13,14 @@ type Loop struct {
 	Variable   string `yaml:"var"`
 	OnlyIf     string `yaml:"onlyIf"`
 	NotIf      string `yaml:"notIf"`
+	ExitIf     string `yaml:"exitIf"`
 }
 
 func (lp *Loop) Setup() {
 	lp.OnlyIf = RenderEnvString(lp.OnlyIf)
 	lp.NotIf = RenderEnvString(lp.NotIf)
+	lp.ExitIf = RenderEnvString(lp.ExitIf)
+	lp.LoopScript = RenderEnvString(lp.LoopScript)
 }
 
 // Execute runs the command.
@@ -25,20 +28,8 @@ func (lp *Loop) Execute() error {
 	lp.Setup()
 	/* We do not replace command envars like the other functions, this is intended to be a raw command */
 	// if onlyIf is set, check if it's return value is not empty / true
-	if len(lp.OnlyIf) > 0 {
-		pc := exe.Run(lp.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", lp.OnlyIf)
-			return nil
-		}
-	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(lp.NotIf) > 0 {
-		pc := exe.Run(lp.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", lp.NotIf)
-			return nil
-		}
+	if !CanContinue(lp.OnlyIf, lp.NotIf, lp.ExitIf, "") {
+		return nil
 	}
 	for i := 0; i < lp.Count; i++ {
 		log.Info().Str("loop", lp.LoopScript).Msgf("executing: %s with variable: %s and value: %d", lp.LoopScript, lp.Variable, i)

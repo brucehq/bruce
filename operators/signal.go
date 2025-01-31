@@ -1,7 +1,6 @@
 package operators
 
 import (
-	"bruce/exe"
 	"bytes"
 	"fmt"
 	"github.com/rs/zerolog/log"
@@ -16,29 +15,21 @@ type Signals struct {
 	Signal  string `yaml:"signal"`
 	OnlyIf  string `yaml:"onlyIf"`
 	NotIf   string `yaml:"notIf"`
+	ExitIf  string `yaml:"exitIf"`
 }
 
 func (s *Signals) Setup() {
 	s.OnlyIf = RenderEnvString(s.OnlyIf)
 	s.NotIf = RenderEnvString(s.NotIf)
+	s.ExitIf = RenderEnvString(s.ExitIf)
 }
 
 func (s *Signals) Execute() error {
-	if len(s.OnlyIf) > 0 {
-		pc := exe.Run(s.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", s.OnlyIf)
-			return nil
-		}
+	s.Setup()
+	if !CanContinue(s.OnlyIf, s.NotIf, s.ExitIf, "") {
+		return nil
 	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(s.NotIf) > 0 {
-		pc := exe.Run(s.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", s.NotIf)
-			return nil
-		}
-	}
+	log.Info().Msgf("signal: %s => %s", s.Signal, s.PidFile)
 	if _, err := os.Stat(s.PidFile); os.IsNotExist(err) {
 		err = fmt.Errorf("pidfile does not exist at: %s", s.PidFile)
 		return err

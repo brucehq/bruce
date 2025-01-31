@@ -1,7 +1,6 @@
 package operators
 
 import (
-	"bruce/exe"
 	"bruce/mutation"
 	"bruce/system"
 	"fmt"
@@ -17,6 +16,7 @@ type Cron struct {
 	Exec     string `yaml:"cmd"`
 	OnlyIf   string `yaml:"onlyIf"`
 	NotIf    string `yaml:"notIf"`
+	ExitIf   string `yaml:"exitIf"`
 }
 
 func (c *Cron) Setup() {
@@ -24,25 +24,14 @@ func (c *Cron) Setup() {
 	c.User = RenderEnvString(c.User)
 	c.OnlyIf = RenderEnvString(c.OnlyIf)
 	c.NotIf = RenderEnvString(c.NotIf)
+	c.ExitIf = RenderEnvString(c.ExitIf)
 }
 
 func (c *Cron) Execute() error {
 	c.Setup()
 	if runtime.GOOS == "linux" {
-		if len(c.OnlyIf) > 0 {
-			pc := exe.Run(c.OnlyIf, "")
-			if pc.Failed() || len(pc.Get()) == 0 {
-				log.Info().Msgf("skipping on (onlyIf): %s", c.OnlyIf)
-				return nil
-			}
-		}
-		// if notIf is set, check if it's return value is empty / false
-		if len(c.NotIf) > 0 {
-			pc := exe.Run(c.NotIf, "")
-			if !pc.Failed() || len(pc.Get()) > 0 {
-				log.Info().Msgf("skipping on (notIf): %s", c.NotIf)
-				return nil
-			}
+		if !CanContinue(c.OnlyIf, c.NotIf, c.ExitIf, "") {
+			return nil
 		}
 		jobName := mutation.StripNonAlnum(c.Name)
 		log.Info().Msgf("cron: /etc/cron.d/%s", jobName)

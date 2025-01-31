@@ -1,7 +1,6 @@
 package operators
 
 import (
-	"bruce/exe"
 	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
@@ -19,6 +18,7 @@ type Git struct {
 	Tag      string `yaml:"tag"`
 	OnlyIf   string `yaml:"onlyIf"`
 	NotIf    string `yaml:"notIf"`
+	ExitIf   string `yaml:"exitIf"`
 }
 
 func (g *Git) Setup() {
@@ -28,6 +28,7 @@ func (g *Git) Setup() {
 	g.Tag = RenderEnvString(g.Tag)
 	g.OnlyIf = RenderEnvString(g.OnlyIf)
 	g.NotIf = RenderEnvString(g.NotIf)
+	g.ExitIf = RenderEnvString(g.ExitIf)
 	if g.Mode == "" {
 		g.Mode = "pull"
 	}
@@ -43,21 +44,10 @@ func (g *Git) Setup() {
 func (g *Git) Execute() error {
 	g.Setup()
 	/* We do not replace command envars like the other functions, this is intended to be a raw command */
-	if len(g.OnlyIf) > 0 {
-		pc := exe.Run(g.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", g.OnlyIf)
-			return nil
-		}
+	if !CanContinue(g.OnlyIf, g.NotIf, g.ExitIf, "") {
+		return nil
 	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(g.NotIf) > 0 {
-		pc := exe.Run(g.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", g.NotIf)
-			return nil
-		}
-	}
+	log.Info().Msgf("git: %s to %s", g.Repo, g.Location)
 	// if directory exists and it contains a .git directory, just return
 	if _, err := os.Stat(path.Join(g.Location, ".git")); err == nil {
 		if g.Mode == "reclone" {

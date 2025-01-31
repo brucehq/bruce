@@ -1,6 +1,7 @@
 package operators
 
 import (
+	"bruce/exe"
 	"bruce/system"
 	"bytes"
 	"fmt"
@@ -56,7 +57,10 @@ func GetValueForOSHandler(value string) string {
 }
 
 func RenderEnvString(o string) string {
-	// now we iterate over the steps and replace the --== and ==-- with {{ and }} respectively and store it in s
+	if len(o) < 1 {
+		return o
+	}
+	// temporarily store the template special characters so we don't break parsing, {{ and }}
 	s := strings.ReplaceAll(o, "--==", "{{")
 	s = strings.ReplaceAll(s, "==--", "}}")
 	log.Debug().Msgf("rendering env string: %s", s)
@@ -87,4 +91,34 @@ func StringFromTemplate(InTemplate string, fields map[string]string) (string, er
 	}
 
 	return result.String(), nil
+}
+
+func ContinueIf(cmd, wdir, exType string) bool {
+	if len(cmd) < 1 {
+		// there is no onlyIf command so we return false.
+		log.Debug().Msgf("%s command is empty continueing", exType)
+		return true
+	}
+	pc := exe.Run(cmd, wdir)
+	if !pc.Failed() && len(pc.Get()) > 0 {
+		log.Info().Msgf("skipping on (%s): %s", exType, pc.Get())
+		return false
+	}
+	return true
+}
+
+func CanContinue(onlyIf, notIf, exitIf, wdir string) bool {
+	if !ContinueIf(exitIf, wdir, "exitIf") {
+		log.Info().Msg("early exit (triggered exitIf)")
+		os.Exit(0)
+	}
+	if !ContinueIf(onlyIf, wdir, "onlyIf") {
+		log.Info().Msg("onlyIf triggered")
+		return false
+	}
+	if !ContinueIf(notIf, wdir, "notIf") {
+		log.Info().Msg("notIf triggered")
+		return false
+	}
+	return true
 }

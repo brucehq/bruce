@@ -1,7 +1,6 @@
 package operators
 
 import (
-	"bruce/exe"
 	"bruce/mutation"
 	"fmt"
 	"github.com/rs/zerolog/log"
@@ -15,6 +14,7 @@ type Tarball struct {
 	Strip  bool   `yaml:"stripRoot"`
 	OnlyIf string `yaml:"onlyIf"`
 	NotIf  string `yaml:"notIf"`
+	ExitIf string `yaml:"exitIf"`
 }
 
 func (t *Tarball) Setup() {
@@ -22,25 +22,15 @@ func (t *Tarball) Setup() {
 	t.Dest = RenderEnvString(t.Dest)
 	t.OnlyIf = RenderEnvString(t.OnlyIf)
 	t.NotIf = RenderEnvString(t.NotIf)
+	t.ExitIf = RenderEnvString(t.ExitIf)
 }
 
 func (t *Tarball) Execute() error {
 	t.Setup()
-	if len(t.OnlyIf) > 0 {
-		pc := exe.Run(t.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", t.OnlyIf)
-			return nil
-		}
+	if !CanContinue(t.OnlyIf, t.NotIf, t.ExitIf, "") {
+		return nil
 	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(t.NotIf) > 0 {
-		pc := exe.Run(t.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", t.NotIf)
-			return nil
-		}
-	}
+	log.Info().Msgf("tarball: %s => %s", t.Src, t.Dest)
 	if len(t.Src) < 1 {
 		return fmt.Errorf("source is too short")
 	}

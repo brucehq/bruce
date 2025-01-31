@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/crypto/ssh/knownhosts"
+	"net"
 	"os"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 type RSSH struct {
@@ -19,7 +20,7 @@ type RSSH struct {
 	client *ssh.Client
 }
 
-func NewRSSH(host, user, privkey string) (*RSSH, error) {
+func NewRSSH(host, user, privkey string, allowInsecure bool) (*RSSH, error) {
 	if privkey == "" {
 		privkey = os.ExpandEnv("$HOME/.ssh/id_rsa")
 	}
@@ -28,49 +29,64 @@ func NewRSSH(host, user, privkey string) (*RSSH, error) {
 		log.Error().Err(err).Msg("failed to read private key")
 		return nil, fmt.Errorf("failed to read private key: %w", err)
 	}
-	port := ":22"
-	if strings.Contains(host, ":") {
-		splits := strings.Split(host, ":")
-		host = splits[0]
-		port = ":" + splits[1]
-	}
+	h, p := formatHostAndPort(host)
 	rsshc := &RSSH{
-		Host: fmt.Sprintf("[%s]", host), // Ensure IPv6 addresses are correctly formatted
+		Host: h, // Ensure IPv6 addresses are correctly formatted
 		User: user,
 		Key:  keyBytes,
-		Port: port,
+		Port: p,
 	}
-	err = rsshc.setup()
+	err = rsshc.setup(allowInsecure)
 	if err != nil {
 		return nil, err
 	}
 	return rsshc, nil
 }
 
-func (r *RSSH) setup() error {
+func formatHostAndPort(hostport string) (string, string) {
+	// parse, detect IPv4 vs IPv6, return correct host + port
+	// pseudocode:
+	if strings.Contains(hostport, ":") {
+		splits := strings.Split(hostport, ":")
+		host := splits[0]
+		port := splits[1]
+		// naive check for IPv6
+		if strings.Contains(host, ":") {
+			return "[" + host + "]", ":" + port
+		}
+		return host, port
+	}
+	// default to port 22
+	return hostport, "22"
+}
+
+func (r *RSSH) setup(doInsecure bool) error {
+
 	signer, err := ssh.ParsePrivateKey(r.Key)
 	if err != nil {
 		return fmt.Errorf("failed to parse private key: %w", err)
 	}
-
 	khPath := os.ExpandEnv("$HOME/.ssh/known_hosts")
 	hkCback, err := knownhosts.New(khPath)
 	if err != nil {
 		return fmt.Errorf("failed to create known_hosts callback: %w", err)
 	}
+	iCBack := ssh.InsecureIgnoreHostKey()
 
-	conf := &ssh.ClientConfig{
+	config := &ssh.ClientConfig{
 		User: r.User,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: hkCback,
 	}
-
-	addr := fmt.Sprintf("%s%s", r.Host, r.Port)
-	client, err := ssh.Dial("tcp", addr, conf)
+	if doInsecure {
+		config.HostKeyCallback = iCBack
+	}
+	addr, port := formatHostAndPort(r.Host)
+	client, err := ssh.Dial("tcp", net.JoinHostPort(addr, port), config)
 	if err != nil {
-		return fmt.Errorf("failed to connect to host %s: %w", addr, err)
+		return err
 	}
 	r.client = client
 	return nil
@@ -81,21 +97,18 @@ func (r *RSSH) ExecCommand(cmd string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create session: %w", err)
 	}
-	defer log.Error().Err(session.Close())
 
-	var stdout, stderr bytes.Buffer
-	session.Stdout = &stdout
-	session.Stderr = &stderr
+	defer session.Close()
+	var b bytes.Buffer
+	session.Stdout = &b
+	session.Stderr = &b
 
-	if err := session.Run(cmd); err != nil {
-		return "", fmt.Errorf("command execution failed: %w | stderr: %s", err, stderr.String())
+	err = session.Run(cmd)
+	if err != nil {
+		log.Debug().Err(err).Msg("remote command execution failed")
+		return "", err
 	}
-
-	if stderr.Len() > 0 {
-		return "", fmt.Errorf("stderr: %s", stderr.String())
-	}
-
-	return stdout.String(), nil
+	return b.String(), nil
 }
 
 func (r *RSSH) Close() {

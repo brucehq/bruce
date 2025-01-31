@@ -203,6 +203,21 @@ func Run(c, dir string) *Execution {
 	return e
 }
 
+func RunScript(c, dir string) *Execution {
+	fileName := EchoToFile(c, os.TempDir())
+	// change directory to the working directory if specified
+	err := os.Chmod(fileName, 0775)
+	if err != nil {
+		log.Error().Err(err).Msg("temp file must exist to continue")
+		e := &Execution{err: err}
+		return e
+	}
+	log.Debug().Msgf("executing local file with current command: %s", fileName)
+	pc := Run(fileName, dir)
+	log.Debug().Err(os.Remove(fileName)).Msg("removing temp file")
+	return pc
+}
+
 // Failed will return true if the command returned an error.
 func (e *Execution) Failed() bool {
 	return e.isError

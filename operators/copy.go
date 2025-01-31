@@ -1,7 +1,6 @@
 package operators
 
 import (
-	"bruce/exe"
 	"bruce/loader"
 	"github.com/rs/zerolog/log"
 	"io/fs"
@@ -14,6 +13,7 @@ type Copy struct {
 	Perm   fs.FileMode `yaml:"perm"`
 	OnlyIf string      `yaml:"onlyIf"`
 	NotIf  string      `yaml:"notIf"`
+	ExitIf string      `yaml:"exitIf"`
 }
 
 func (c *Copy) Setup() {
@@ -21,25 +21,15 @@ func (c *Copy) Setup() {
 	c.Dest = RenderEnvString(c.Dest)
 	c.OnlyIf = RenderEnvString(c.OnlyIf)
 	c.NotIf = RenderEnvString(c.NotIf)
+	c.ExitIf = RenderEnvString(c.ExitIf)
 }
 
 func (c *Copy) Execute() error {
 	c.Setup()
-	if len(c.OnlyIf) > 0 {
-		pc := exe.Run(c.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", c.OnlyIf)
-			return nil
-		}
+	if !CanContinue(c.OnlyIf, c.NotIf, c.ExitIf, "") {
+		return nil
 	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(c.NotIf) > 0 {
-		pc := exe.Run(c.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", c.NotIf)
-			return nil
-		}
-	}
+	log.Info().Msgf("copy: %s => %s", c.Src, c.Dest)
 	err := loader.CopyFile(c.Src, c.Dest, c.Key, c.Perm, true)
 	log.Info().Msgf("copy: %s => %s", c.Src, c.Dest)
 	if err != nil {

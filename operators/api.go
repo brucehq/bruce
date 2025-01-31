@@ -1,7 +1,6 @@
 package operators
 
 import (
-	"bruce/exe"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -28,6 +27,7 @@ type API struct {
 	EnvId        string   `yaml:"setBodyEnv"`
 	JsonEnv      string   `yaml:"setEnv"`
 	JsonKey      string   `yaml:"jsonKey"`
+	ExitIf       string   `yaml:"exitIf"`
 	bodyContent  []byte
 	bodyTemplate *ttpl.Template
 }
@@ -80,6 +80,7 @@ func (api *API) Setup() {
 	api.OutputFile = RenderEnvString(api.OutputFile)
 	api.OnlyIf = RenderEnvString(api.OnlyIf)
 	api.NotIf = RenderEnvString(api.NotIf)
+	api.ExitIf = RenderEnvString(api.ExitIf)
 	if len(api.Body) == 0 {
 		return
 	}
@@ -123,25 +124,13 @@ func (api *API) Setup() {
 func (api *API) Execute() error {
 	api.Setup()
 	/* We do not replace command envars like the other functions, this is intended to be a raw command */
-	if len(api.OnlyIf) > 0 {
-		pc := exe.Run(api.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", api.OnlyIf)
-			return nil
-		}
-	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(api.NotIf) > 0 {
-		pc := exe.Run(api.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", api.NotIf)
-			return nil
-		}
+	if !CanContinue(api.OnlyIf, api.NotIf, api.ExitIf, "") {
+		return nil
 	}
 	if api.Method == "" {
 		api.Method = "GET"
 	}
-	log.Info().Msgf("API request: %s %s", api.Method, api.Endpoint)
+	log.Info().Msgf("api: %s %s", api.Method, api.Endpoint)
 	req, err := http.NewRequest(api.Method, api.Endpoint, bytes.NewBuffer(api.bodyContent))
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create request")

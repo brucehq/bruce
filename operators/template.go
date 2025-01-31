@@ -41,6 +41,7 @@ type Template struct {
 	Variables []TVars     `yaml:"vars"`
 	OnlyIf    string      `yaml:"onlyIf"`
 	NotIf     string      `yaml:"notIf"`
+	ExitIf    string      `yaml:"exitIf"`
 }
 
 func (t *Template) Setup() {
@@ -48,6 +49,7 @@ func (t *Template) Setup() {
 	t.RemoteLoc = RenderEnvString(t.RemoteLoc)
 	t.OnlyIf = RenderEnvString(t.OnlyIf)
 	t.NotIf = RenderEnvString(t.NotIf)
+	t.ExitIf = RenderEnvString(t.ExitIf)
 }
 
 type TVars struct {
@@ -64,21 +66,10 @@ func dump(field interface{}) string {
 
 func (t *Template) Execute() error {
 	t.Setup()
-	if len(t.OnlyIf) > 0 {
-		pc := exe.Run(t.OnlyIf, "")
-		if pc.Failed() || len(pc.Get()) == 0 {
-			log.Info().Msgf("skipping on (onlyIf): %s", t.OnlyIf)
-			return nil
-		}
+	if !CanContinue(t.OnlyIf, t.NotIf, t.ExitIf, "") {
+		return nil
 	}
-	// if notIf is set, check if it's return value is empty / false
-	if len(t.NotIf) > 0 {
-		pc := exe.Run(t.NotIf, "")
-		if !pc.Failed() || len(pc.Get()) > 0 {
-			log.Info().Msgf("skipping on (notIf): %s", t.NotIf)
-			return nil
-		}
-	}
+	log.Info().Msgf("template: %s => %s", t.RemoteLoc, t.Template)
 	log.Debug().Msgf("using template backup directory as: %s", backupDir)
 	// backup existing template if exists
 	if exe.FileExists(t.Template) {
@@ -91,7 +82,7 @@ func (t *Template) Execute() error {
 	} else {
 		log.Debug().Str("template", t.Template).Msg("no existing template file exists")
 	}
-	log.Info().Msgf("template: %s => %s", t.RemoteLoc, t.Template)
+
 	return ExecuteTemplate(t.Template, t.RemoteLoc, t.RemoteKey, t.Variables, t.Perms)
 	// run template exec on file
 }
