@@ -30,6 +30,9 @@ func sanitizePath(path string) (string, error) {
 		return "", fmt.Errorf("path traversal attempt: %s", path)
 	}
 	cleanPath := filepath.Clean(path)
+	if strings.Contains(cleanPath, "..") {
+		return "", fmt.Errorf("path traversal attempt: %s", path)
+	}
 	return cleanPath, nil
 }
 
@@ -80,7 +83,7 @@ func ExtractTarball(src, dst string, force, stripRoot bool) error {
 				isTopLevel = true
 			}
 		}
-		fmt.Printf("extracting: %s\n", target)
+		log.Debug().Msgf("extracting: %s", target)
 		switch header.Typeflag {
 		case tar.TypeDir:
 			if !isTopLevel {
