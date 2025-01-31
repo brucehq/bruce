@@ -96,6 +96,12 @@ func (e *Steps) UnmarshalYAML(nd *yaml.Node) error {
 		e.Action = ap
 		return nil
 	}
+	slp := &operators.Sleep{}
+	if err := nd.Decode(slp); err == nil && slp.Time > 0 {
+		log.Debug().Msg("matching sleep operator")
+		e.Action = slp
+		return nil
+	}
 
 	log.Debug().Msg("no matching operator found, using null operator")
 	e.Action = &operators.NullOperator{}
