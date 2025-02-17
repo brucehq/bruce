@@ -7,7 +7,6 @@ import (
 )
 
 type Tarball struct {
-	Name   string `yaml:"name"`
 	Src    string `yaml:"tarball"`
 	Dest   string `yaml:"dest"`
 	Force  bool   `yaml:"force"`

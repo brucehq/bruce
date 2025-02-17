@@ -22,11 +22,11 @@ type API struct {
 	Method       string   `yaml:"method"`
 	Body         string   `yaml:"body"`
 	Headers      []string `yaml:"headers"`
-	OnlyIf       string   `yaml:"onlyIf"`
-	NotIf        string   `yaml:"notIf"`
 	EnvId        string   `yaml:"setBodyEnv"`
 	JsonEnv      string   `yaml:"setEnv"`
 	JsonKey      string   `yaml:"jsonKey"`
+	OnlyIf       string   `yaml:"onlyIf"`
+	NotIf        string   `yaml:"notIf"`
 	ExitIf       string   `yaml:"exitIf"`
 	bodyContent  []byte
 	bodyTemplate *ttpl.Template
