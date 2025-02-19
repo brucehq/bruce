@@ -17,11 +17,11 @@ flowchart TD
     end
 
     BA_Logic --> |Setup & Connect| BB_Comms
-    BB_Comms --> |1. Send Workfow Events| BA_Comms
-    BA_Comms --> |2. Execution Loop| BA_Steps
-    BA_Steps --> |4. Notify Outcome| BA_Comms
-    BA_Comms --> |5. Receive Outcome Events|BB_Comms
-    BB_Comms --> |6. Send Outcome| BB_WF
-    BB_WF --> |7. Notify on Outcome|BB_Notify
-    BA_Steps --> |3. Optional - API Notify| External_Endpoint
+    BB_Comms --> |1 - Send Workfow Events| BA_Comms
+    BA_Comms --> |2 - Execution Loop| BA_Steps
+    BA_Steps --> |4 - Notify Outcome| BA_Comms
+    BA_Comms --> |5 - Receive Outcome Events|BB_Comms
+    BB_Comms --> |6 - Send Outcome| BB_WF
+    BB_WF --> |7 - Notify on Outcome|BB_Notify
+    BA_Steps --> |3 - Optional - API Notify| External_Endpoint
 ```
