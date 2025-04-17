@@ -42,6 +42,27 @@ The repository is also supported and backed by Runtime Dynamics LLC. Which is pr
 * **Conditional Execution**: Execute or exclude commands based on conditions.
 * **Service Management**: Restart services only on change detection to minimize downtime.
 
+## Architecture
+The architecture behind bruce encompasses both the agent (this client repository) and the backend.  The current
+architecture is divided into 3 individual contexts:
+
+### Systems Context
+- [Systems Context](diagram-systems.md)
+
+The systems context as shown in the diagram above focuses on how the agent and the backend interact with each other to provide a fully managed agentic ecosystem.  Please note that this repository can and is used as a standalone agent still and is not required to be directly tied to the backend.
+
+### Communications Context
+- [Communications Context](diagram-communication.md)
+
+The communication context as shown in the diagram above focuses on how the agent and the backend communicate with each other to provide a fully managed agentic ecosystem.
+
+### Workflow Context
+- [Workflow Context](diagram-workflow.md)
+
+The workflow context as shown in the diagram above focuses on how the agent and the backend work together to provide a fully managed agentic ecosystem.
+This includes the ability for one agent to start an additional workflow via an `api` operator beyond the standard workflow execution mechanism that exists for agents and actions on failure / success as defined in the backend, giving you the maximum level of flexibility.
+
+
 ## Getting Started
 
 ### Documentation
