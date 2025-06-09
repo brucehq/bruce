@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.7
 	github.com/coder/websocket v1.8.13
 	github.com/davecgh/go-spew v1.1.1
-	github.com/go-git/go-git/v5 v5.16.0
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/minio/selfupdate v0.6.0
 	github.com/rs/zerolog v1.34.0
 	github.com/urfave/cli/v2 v2.27.6
