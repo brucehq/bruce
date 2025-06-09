@@ -13,7 +13,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/urfave/cli/v2 v2.27.6
 	github.com/viant/afs v1.26.2
-	golang.org/x/crypto v0.38.0
+	golang.org/x/crypto v0.39.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
