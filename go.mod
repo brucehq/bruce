@@ -11,7 +11,7 @@ require (
 	github.com/go-git/go-git/v5 v5.16.0
 	github.com/minio/selfupdate v0.6.0
 	github.com/rs/zerolog v1.34.0
-	github.com/urfave/cli/v2 v2.27.6
+	github.com/urfave/cli/v2 v2.27.7
 	github.com/viant/afs v1.26.2
 	golang.org/x/crypto v0.38.0
 	gopkg.in/yaml.v3 v3.0.1
