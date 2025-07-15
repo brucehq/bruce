@@ -13,7 +13,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/urfave/cli/v2 v2.27.6
 	github.com/viant/afs v1.26.2
-	golang.org/x/crypto v0.38.0
+	golang.org/x/crypto v0.40.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -42,7 +42,7 @@ require (
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
