@@ -1,19 +1,19 @@
 module bruce
 
-go 1.23.0
-
-toolchain go1.23.7
+go 1.24.0
 
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/coder/websocket v1.8.13
+	github.com/aws/aws-sdk-go v1.55.8
+	github.com/coder/websocket v1.8.14
 	github.com/davecgh/go-spew v1.1.1
-	github.com/go-git/go-git/v5 v5.16.0
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/minio/selfupdate v0.6.0
 	github.com/rs/zerolog v1.34.0
-	github.com/urfave/cli/v2 v2.27.6
+	github.com/urfave/cli/v2 v2.27.7
 	github.com/viant/afs v1.26.2
-	golang.org/x/crypto v0.38.0
+	golang.org/x/crypto v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -42,7 +42,7 @@ require (
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
