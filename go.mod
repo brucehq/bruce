@@ -3,7 +3,9 @@ module bruce
 go 1.24.0
 
 require (
-	github.com/aws/aws-sdk-go v1.55.7
+	github.com/aws/aws-sdk-go v1.55.8
+	github.com/coder/websocket v1.8.13
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/coder/websocket v1.8.14
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-git/go-git/v5 v5.16.2
