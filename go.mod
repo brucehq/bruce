@@ -8,7 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-git/go-git/v5 v5.17.2
 	github.com/minio/selfupdate v0.6.0
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.0
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/viant/afs v1.28.0
 	golang.org/x/crypto v0.45.0
