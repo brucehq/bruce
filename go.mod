@@ -10,7 +10,7 @@ require (
 	github.com/minio/selfupdate v0.6.0
 	github.com/rs/zerolog v1.35.1
 	github.com/urfave/cli/v2 v2.27.7
-	github.com/viant/afs v1.30.0
+	github.com/viant/afs v1.30.1
 	golang.org/x/crypto v0.58.0
 	gopkg.in/yaml.v3 v3.0.1
 )
